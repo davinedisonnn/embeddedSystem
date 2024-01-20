@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>
+broadcast chan redStateNS, yellowStateNS, greenStateNS, redStateWE, yellowStateWE, greenStateWE;
+clock elapsedTime;</declaration>
+	<template>
+		<name x="5" y="5">NS_Car</name>
+		<location id="id0" x="-620" y="-357">
+			<name x="-654" y="-399">NS_Car_Red</name>
+		</location>
+		<location id="id1" x="-408" y="-357">
+			<name x="-459" y="-399">NS_Car_Yellow</name>
+		</location>
+		<location id="id2" x="-204" y="-357">
+			<name x="-255" y="-399">NS_Car_Green</name>
+		</location>
+		<init ref="id1"/>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="guard" x="-569" y="-297">elapsedTime &gt; 5</label>
+			<label kind="synchronisation" x="-569" y="-280">redStateNS!</label>
+			<label kind="assignment" x="-569" y="-263">elapsedTime = 0</label>
+			<nail x="-442" y="-306"/>
+			<nail x="-586" y="-306"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id1"/>
+			<label kind="guard" x="-365" y="-297">elapsedTime&gt;60</label>
+			<label kind="synchronisation" x="-365" y="-280">yellowStateNS!</label>
+			<label kind="assignment" x="-365" y="-263">elapsedTime=0</label>
+			<nail x="-238" y="-306"/>
+			<nail x="-374" y="-306"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="-348" y="-382">redStateWE?</label>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="-569" y="-382">yellowStateWE?</label>
+		</transition>
+	</template>
+	<template>
+		<name>WE_Car</name>
+		<location id="id3" x="153" y="-161">
+			<name x="102" y="-212">WE_Car_Yellow</name>
+		</location>
+		<location id="id4" x="-51" y="-161">
+			<name x="-110" y="-212">WE_Car_Red</name>
+		</location>
+		<location id="id5" x="348" y="-161">
+			<name x="306" y="-212">WE_Car_Green</name>
+		</location>
+		<init ref="id3"/>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id4"/>
+			<label kind="guard" x="0" y="-118">elapsedTime &gt; 5</label>
+			<label kind="synchronisation" x="0" y="-101">redStateWE!</label>
+			<label kind="assignment" x="0" y="-84">elapsedTime = 0</label>
+			<nail x="127" y="-118"/>
+			<nail x="-34" y="-118"/>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id3"/>
+			<label kind="guard" x="187" y="-118">elapsedTime &gt;60</label>
+			<label kind="synchronisation" x="187" y="-101">yellowStateWE!</label>
+			<label kind="assignment" x="187" y="-84">elapsedTime = 0</label>
+			<nail x="323" y="-118"/>
+			<nail x="178" y="-118"/>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id5"/>
+			<label kind="synchronisation" x="212" y="-186">redStateNS?</label>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id3"/>
+			<label kind="synchronisation" x="0" y="-186">yellowStateNS?</label>
+		</transition>
+	</template>
+	<template>
+		<name>NS_Pedestrian</name>
+		<location id="id6" x="-195" y="-8">
+			<name x="-306" y="-42">pedestrianNS_Red</name>
+		</location>
+		<location id="id7" x="42" y="-8">
+			<name x="50" y="-42">pedestrianNS_Green</name>
+		</location>
+		<init ref="id6"/>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id6"/>
+			<label kind="synchronisation" x="-127" y="34">yellowStateNS?</label>
+			<nail x="17" y="34"/>
+			<nail x="-170" y="34"/>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id7"/>
+			<label kind="synchronisation" x="-119" y="-34">redStateWE?</label>
+		</transition>
+	</template>
+	<template>
+		<name>WE_Pedestrian</name>
+		<location id="id8" x="-178" y="-8">
+			<name x="-280" y="-51">pedestrianWE_Red</name>
+		</location>
+		<location id="id9" x="42" y="-8">
+			<name x="25" y="-51">pedestrianWE_Green</name>
+		</location>
+		<init ref="id8"/>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id8"/>
+			<label kind="synchronisation" x="-110" y="34">yellowStateWE?</label>
+			<nail x="17" y="34"/>
+			<nail x="-144" y="34"/>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id9"/>
+			<label kind="synchronisation" x="-110" y="-25">redStateNS?</label>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+
+// List one or more processes to be composed into a system.
+system NS_Car,WE_Car,NS_Pedestrian,WE_Pedestrian;
+    </system>
+	<queries>
+		<query>
+			<formula>A[] not (NS_Car.NS_Car_Green &amp;&amp; WE_Car.WE_Car_Green)</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A[] (WE_Pedestrian.pedestrianWE_Green imply NS_Car.NS_Car_Red)</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A[] (NS_Pedestrian.pedestrianNS_Green imply WE_Car.WE_Car_Red)</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A[] (WE_Car.WE_Car_Green imply NS_Pedestrian.pedestrianNS_Red)</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A[] (NS_Car.NS_Car_Green imply WE_Pedestrian.pedestrianWE_Red)</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A[] not (NS_Car.NS_Car_Green &amp;&amp; NS_Pedestrian.pedestrianNS_Green &amp;&amp; WE_Pedestrian.pedestrianWE_Green &amp;&amp; WE_Car.WE_Car_Green )</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A[] not (NS_Car.NS_Car_Red &amp;&amp; NS_Pedestrian.pedestrianNS_Red &amp;&amp; WE_Car.WE_Car_Red &amp;&amp; WE_Pedestrian.pedestrianWE_Red)</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A[] not (NS_Car.NS_Car_Green &amp;&amp; WE_Car.WE_Car_Green)</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>A[] not deadlock</formula>
+			<comment></comment>
+		</query>
+	</queries>
+</nta>

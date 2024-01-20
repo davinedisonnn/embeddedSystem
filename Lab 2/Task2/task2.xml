@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+const int n=6;
+typedef int[1,n] id_t;
+chan request_up[n+1];
+chan request_down[n+1];
+chan ack[n+1];
+clock elapsedTime;</declaration>
+	<template>
+		<name x="5" y="5">Elevator</name>
+		<declaration>// Place local declarations here.
+int currentFloor = 0;
+int targetFloor = 0;
+int elevatorState = 0; //0 = idle, 1 = up, 2 = down
+int queueLength=0;
+const int N=7;
+int requestQueue[N];
+int inputIndexLocation = 100;
+int findLocationIndex = 0;
+int sortIndex = 0;
+void elevatorStateUpdate(){
+    if (queueLength == 0){
+        elevatorState = 0;
+    }
+
+    else if (queueLength != 0){
+        if (requestQueue[0] &gt; currentFloor){
+            elevatorState = 1;
+        }
+        
+        else if (requestQueue[0] &lt; currentFloor){
+            elevatorState = 2;
+        }
+    }
+}
+
+void ascend_enqueue(id_t newFloorNumberRequest){
+    if (queueLength == 0){
+        requestQueue [0] = newFloorNumberRequest;
+         queueLength = queueLength + 1;   
+    }
+
+    else if (queueLength == 6){
+        queueLength = 6;
+    }
+
+    else{
+        inputIndexLocation = 100;
+        //Find where the new request should be put inside the array 
+        findLocationIndex = 0;
+        sortIndex = queueLength - 1;
+        while (findLocationIndex &lt; queueLength){
+            if (inputIndexLocation == 100){
+                if (requestQueue[findLocationIndex] &gt; newFloorNumberRequest){
+                    inputIndexLocation = findLocationIndex;
+                }
+                
+                else if (findLocationIndex + 1 == queueLength){
+                    inputIndexLocation = findLocationIndex + 1;
+                }
+            }
+            findLocationIndex = findLocationIndex + 1;
+        }
+        
+        //Sorting previous queue to make space for the new request floor
+        while (sortIndex &gt;= inputIndexLocation){
+            requestQueue[sortIndex+1] = requestQueue[sortIndex];
+            sortIndex = sortIndex - 1;
+        }
+
+        if (inputIndexLocation != 100){            
+            requestQueue[inputIndexLocation] = newFloorNumberRequest;
+            queueLength = queueLength + 1;
+        }
+    }
+}
+
+
+void descend_enqueue(id_t newFloorNumberRequest){
+    if (queueLength == 0){
+        requestQueue[0] = newFloorNumberRequest;
+        queueLength = queueLength + 1;
+    }
+
+    else if (queueLength == 6){
+        queueLength = 6;
+    }
+
+    else{
+        inputIndexLocation = 100;
+        //Find where the new request should be put inside the array 
+        findLocationIndex = 0;
+        sortIndex = queueLength-1;
+        while (findLocationIndex &lt; queueLength){
+            if (inputIndexLocation == 100){
+                if (requestQueue[findLocationIndex] &lt; newFloorNumberRequest){
+                    inputIndexLocation = findLocationIndex;
+                }
+                else if (findLocationIndex + 1 == queueLength){
+                    inputIndexLocation = findLocationIndex + 1;
+                }
+            }
+            findLocationIndex = findLocationIndex + 1;
+        }
+        
+        //Sorting previous queue to make space for the new request floor
+        while (sortIndex &gt;= inputIndexLocation){
+            requestQueue[sortIndex+1] = requestQueue[sortIndex];
+            sortIndex = sortIndex - 1;
+        }
+
+        if (inputIndexLocation != 100){            
+            requestQueue[inputIndexLocation] = newFloorNumberRequest;
+            queueLength = queueLength + 1;
+        }
+    }
+}
+
+
+void dequeue(){
+    int dequeueIndex = 0;
+    currentFloor = requestQueue[0];
+    while (dequeueIndex &lt; queueLength-1){
+        requestQueue[dequeueIndex] = requestQueue[dequeueIndex + 1];
+        dequeueIndex++;
+    }
+    
+    if (queueLength &gt; 0){
+        requestQueue[queueLength-1] = 0;
+        queueLength = queueLength-1;
+    }
+
+    else{
+        requestQueue[0]=0;
+        queueLength = 0;
+     }
+}
+
+
+int front(){
+   return requestQueue[0];
+}
+
+
+</declaration>
+		<location id="id0" x="306" y="153">
+			<name x="323" y="161">LoadingUnloading</name>
+			<label kind="invariant" x="323" y="178">elapsedTime &lt; 5</label>
+		</location>
+		<location id="id1" x="-185" y="157">
+			<name x="-153" y="119">MovingDown</name>
+			<label kind="invariant" x="-153" y="136">elapsedTime &lt; 5</label>
+		</location>
+		<location id="id2" x="304" y="-120">
+			<name x="187" y="-110">MovingUp</name>
+			<label kind="invariant" x="178" y="-93">elapsedTime &lt; 5</label>
+		</location>
+		<location id="id3" x="-184" y="-120">
+			<name x="-161" y="-178">Idle</name>
+			<label kind="invariant" x="-161" y="-161">elapsedTime &lt; 5</label>
+		</location>
+		<init ref="id3"/>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id3"/>
+			<label kind="select" x="-374" y="-136">e : int [1,6]</label>
+			<label kind="guard" x="-416" y="-119">e &lt; currentFloor &amp;&amp; queueLength == 0</label>
+			<label kind="synchronisation" x="-425" y="-102">request_down[e]?</label>
+			<label kind="assignment" x="-731" y="-85">descend_enqueue(e), elevatorStateUpdate(), targetFloor = front()</label>
+			<nail x="-229" y="-59"/>
+			<nail x="-289" y="-59"/>
+			<nail x="-289" y="-119"/>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id3"/>
+			<label kind="select" x="-272" y="-314">e : int [1,6]</label>
+			<label kind="guard" x="-272" y="-297">e &gt; currentFloor &amp;&amp; queueLength == 0</label>
+			<label kind="synchronisation" x="-272" y="-280">request_up[e]?</label>
+			<label kind="assignment" x="-272" y="-263">ascend_enqueue(e), elevatorStateUpdate(), targetFloor = front()</label>
+			<nail x="-238" y="-178"/>
+			<nail x="-238" y="-238"/>
+			<nail x="-178" y="-238"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id1"/>
+			<label kind="guard" x="-238" y="229">currentFloor != targetFloor</label>
+			<label kind="assignment" x="-238" y="246">currentFloor = currentFloor - 1</label>
+			<nail x="-119" y="187"/>
+			<nail x="-119" y="221"/>
+			<nail x="-187" y="221"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id2"/>
+			<label kind="guard" x="442" y="-93">currentFloor != targetFloor</label>
+			<label kind="assignment" x="442" y="-76">currentFloor = currentFloor + 1</label>
+			<nail x="442" y="-85"/>
+			<nail x="416" y="-42"/>
+			<nail x="340" y="-59"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id1"/>
+			<label kind="select" x="-365" y="153">e : int [1,6]</label>
+			<label kind="guard" x="-408" y="170">e &lt; currentFloor</label>
+			<label kind="synchronisation" x="-416" y="187">request_down[e]?</label>
+			<label kind="assignment" x="-586" y="204">descend_enqueue(e), targetFloor = front()</label>
+			<nail x="-221" y="212"/>
+			<nail x="-280" y="212"/>
+			<nail x="-280" y="153"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id2"/>
+			<label kind="select" x="416" y="-195">e : int[1,6]</label>
+			<label kind="guard" x="416" y="-178">e &gt; currentFloor</label>
+			<label kind="synchronisation" x="416" y="-161">request_up[e]?</label>
+			<label kind="assignment" x="416" y="-144">ascend_enqueue(e), targetFloor=front()</label>
+			<nail x="306" y="-204"/>
+			<nail x="408" y="-204"/>
+			<nail x="408" y="-119"/>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id3"/>
+			<label kind="assignment" x="-25" y="34">dequeue(), 
+targetFloor = front(),
+elevatorStateUpdate(), 
+elapsedTime = 0</label>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id0"/>
+			<label kind="select" x="314" y="-8">e : int[1,6]</label>
+			<label kind="guard" x="314" y="17">currentFloor == targetFloor</label>
+			<label kind="synchronisation" x="314" y="34">ack[currentFloor]!</label>
+			<label kind="assignment" x="314" y="59">targetFloor = front(), elapsedTime = 0</label>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="guard" x="-17" y="161">currentFloor == targetFloor</label>
+			<label kind="synchronisation" x="-17" y="178">ack[currentFloor]!</label>
+			<label kind="assignment" x="-17" y="195">targetFloor = front(),
+elapsedTime = 0</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id1"/>
+			<label kind="guard" x="-535" y="34">targetFloor &lt; currentFloor &amp;&amp; elevatorState == 2</label>
+			<label kind="assignment" x="-306" y="51">elapsedTime = 0</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id2"/>
+			<label kind="guard" x="-76" y="-144">targetFloor &gt; currentFloor &amp;&amp; elevatorState == 1</label>
+			<label kind="assignment" x="-76" y="-119">elapsedTime = 0</label>
+		</transition>
+	</template>
+	<template>
+		<name>Floors</name>
+		<parameter>const id_t floorNumber</parameter>
+		<location id="id4" x="-391" y="-42">
+			<name x="-501" y="-25">DownRequest</name>
+		</location>
+		<location id="id5" x="59" y="-42">
+			<name x="101" y="-34">UpRequest</name>
+		</location>
+		<location id="id6" x="-161" y="-42">
+			<name x="-171" y="-72">Idle</name>
+		</location>
+		<init ref="id6"/>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id6"/>
+			<label kind="synchronisation" x="-119" y="-93">ack[floorNumber]?</label>
+			<nail x="-51" y="-68"/>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id6"/>
+			<label kind="synchronisation" x="-340" y="-102">ack[floorNumber]?</label>
+			<nail x="-272" y="-76"/>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id4"/>
+			<label kind="synchronisation" x="-374" y="-34">request_down[floorNumber]!</label>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id5"/>
+			<label kind="synchronisation" x="-144" y="-34">request_up[floorNumber]!</label>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+// Process = Template();
+// List one or more processes to be composed into a system.
+system Elevator, Floors;</system>
+	<queries>
+		<query>
+			<formula></formula>
+			<comment></comment>
+		</query>
+	</queries>
+</nta>

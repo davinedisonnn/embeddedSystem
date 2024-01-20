@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here.</declaration>
+	<template>
+		<name x="5" y="5">floorTemplate</name>
+		<declaration>// Place local declarations here.</declaration>
+		<location id="id0" x="51" y="0">
+			<name x="59" y="-34">idle</name>
+		</location>
+		<location id="id1" x="340" y="0">
+			<name x="330" y="-34">downRequest</name>
+		</location>
+		<location id="id2" x="-255" y="0">
+			<name x="-331" y="17">upRequest</name>
+		</location>
+		<init ref="id0"/>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="69" y="34">ack[floorNumber]?</label>
+			<nail x="340" y="51"/>
+			<nail x="51" y="51"/>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id1"/>
+			<label kind="guard" x="102" y="-25">downRequestState == true</label>
+			<label kind="synchronisation" x="93" y="0">downRequestSync[floorNumber]!</label>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="-170" y="-68">ack[floorNumber]?</label>
+			<nail x="-255" y="-51"/>
+			<nail x="51" y="-51"/>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id2"/>
+			<label kind="guard" x="-187" y="8">upRequestState == true</label>
+			<label kind="synchronisation" x="-204" y="25">upRequestSync[floorNumber]!</label>
+		</transition>
+	</template>
+	<template>
+		<name>liftTemplate</name>
+		<declaration>int currentFloor
+int targetFloor
+int requestQueue
+</declaration>
+		<location id="id3" x="0" y="0">
+			<name x="-10" y="-34">Idle</name>
+		</location>
+		<location id="id4" x="297" y="0">
+			<name x="287" y="-34">movingDown</name>
+		</location>
+		<location id="id5" x="297" y="263">
+			<name x="280" y="280">Loading/Unloading</name>
+		</location>
+		<location id="id6" x="0" y="263">
+			<name x="-59" y="280">movingUp</name>
+		</location>
+		<init ref="id3"/>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id5"/>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id4"/>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id3"/>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id5"/>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id6"/>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+Process = Template();
+// List one or more processes to be composed into a system.
+system Process;
+    </system>
+	<queries>
+		<query>
+			<formula></formula>
+			<comment></comment>
+		</query>
+	</queries>
+</nta>
