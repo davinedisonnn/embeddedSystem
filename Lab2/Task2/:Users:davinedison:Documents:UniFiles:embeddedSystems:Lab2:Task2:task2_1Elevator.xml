@@ -8,11 +8,11 @@ chan request_up1[n+1];
 chan request_down1[n+1];
 chan request_up2[n+1];
 chan request_down2[n+1];
-chan ack[n+1];
-clock elapsedTime;</declaration>
+chan ack[n+1];</declaration>
 	<template>
 		<name x="5" y="5">Elevator1</name>
 		<declaration>// Place local declarations here.
+clock elapsedTime;
 int currentFloor = 0;
 int targetFloor = 0;
 int elevatorState = 0; //0 = idle, 1 = up, 2 = down
@@ -212,7 +212,7 @@ targetFloor = front()</label>
 			<source ref="id1"/>
 			<target ref="id1"/>
 			<label kind="select" x="-453" y="222">e : int [1,6]</label>
-			<label kind="guard" x="-496" y="239">e &lt; currentFloor</label>
+			<label kind="guard" x="-496" y="239">e &lt; currentFloor &amp;&amp; currentFloor!=targetFloor</label>
 			<label kind="synchronisation" x="-504" y="256">request_down1[e]?</label>
 			<label kind="assignment" x="-513" y="273">descend_enqueue(e), 
 targetFloor = front()</label>
@@ -224,7 +224,7 @@ targetFloor = front()</label>
 			<source ref="id2"/>
 			<target ref="id2"/>
 			<label kind="select" x="306" y="-229">e : int[1,6]</label>
-			<label kind="guard" x="306" y="-212">e &gt; currentFloor</label>
+			<label kind="guard" x="306" y="-212">e &gt; currentFloor &amp;&amp; currentFloor!=targetFloor</label>
 			<label kind="synchronisation" x="306" y="-195">request_up1[e]?</label>
 			<label kind="assignment" x="306" y="-178">ascend_enqueue(e), 
 targetFloor=front()</label>
@@ -243,11 +243,9 @@ elapsedTime = 0</label>
 		<transition>
 			<source ref="id2"/>
 			<target ref="id0"/>
-			<label kind="select" x="314" y="59">e : int[1,6]</label>
 			<label kind="guard" x="314" y="76">currentFloor == targetFloor</label>
 			<label kind="synchronisation" x="314" y="93">ack[currentFloor]!</label>
-			<label kind="assignment" x="314" y="110">targetFloor = front(), 
-elapsedTime = 0</label>
+			<label kind="assignment" x="314" y="110">elapsedTime = 0</label>
 		</transition>
 		<transition>
 			<source ref="id1"/>
@@ -260,19 +258,20 @@ elapsedTime = 0</label>
 		<transition>
 			<source ref="id3"/>
 			<target ref="id1"/>
-			<label kind="guard" x="-623" y="103">targetFloor &lt; currentFloor &amp;&amp; elevatorState == 2</label>
-			<label kind="assignment" x="-394" y="120">elapsedTime = 0</label>
+			<label kind="guard" x="-765" y="102">targetFloor &lt; currentFloor &amp;&amp; elevatorState == 2 &amp;&amp; queueLength &gt; 0</label>
+			<label kind="assignment" x="-408" y="119">elapsedTime = 0</label>
 		</transition>
 		<transition>
 			<source ref="id3"/>
 			<target ref="id2"/>
-			<label kind="guard" x="-127" y="-76">targetFloor &gt; currentFloor &amp;&amp; elevatorState == 1</label>
+			<label kind="guard" x="-195" y="-127">targetFloor &gt; currentFloor &amp;&amp; elevatorState == 1 &amp;&amp; queueLength &gt;0</label>
 			<label kind="assignment" x="-17" y="-51">elapsedTime = 0</label>
 		</transition>
 	</template>
 	<template>
 		<name>Elevator2</name>
 		<declaration>// Place local declarations here.
+clock elapsedTime2;
 int currentFloor = 0;
 int targetFloor = 0;
 int elevatorState = 0; //0 = idle, 1 = up, 2 = down
@@ -409,19 +408,19 @@ int front(){
 </declaration>
 		<location id="id4" x="306" y="153">
 			<name x="323" y="161">LoadingUnloading</name>
-			<label kind="invariant" x="323" y="178">elapsedTime &lt; 5</label>
+			<label kind="invariant" x="323" y="178">elapsedTime2 &lt; 5</label>
 		</location>
 		<location id="id5" x="-280" y="153">
 			<name x="-263" y="119">MovingDown</name>
-			<label kind="invariant" x="-263" y="136">elapsedTime &lt; 5</label>
+			<label kind="invariant" x="-263" y="136">elapsedTime2 &lt; 5</label>
 		</location>
 		<location id="id6" x="304" y="-120">
 			<name x="229" y="-110">MovingUp</name>
-			<label kind="invariant" x="187" y="-85">elapsedTime &lt; 5</label>
+			<label kind="invariant" x="187" y="-85">elapsedTime2 &lt; 5</label>
 		</location>
 		<location id="id7" x="-279" y="-124">
 			<name x="-263" y="-161">Idle</name>
-			<label kind="invariant" x="-263" y="-144">elapsedTime &lt; 5</label>
+			<label kind="invariant" x="-263" y="-144">elapsedTime2 &lt; 5</label>
 		</location>
 		<init ref="id7"/>
 		<transition>
@@ -429,7 +428,7 @@ int front(){
 			<target ref="id7"/>
 			<label kind="select" x="-469" y="-140">e : int [1,6]</label>
 			<label kind="guard" x="-664" y="-123">e &lt; currentFloor &amp;&amp; queueLength == 0</label>
-			<label kind="synchronisation" x="-528" y="-106">request_down2[e]?</label>
+			<label kind="synchronisation" x="-528" y="-106">request_down1[e]?</label>
 			<label kind="assignment" x="-545" y="-89">descend_enqueue(e), 
 elevatorStateUpdate(), 
 targetFloor = front()</label>
@@ -442,7 +441,7 @@ targetFloor = front()</label>
 			<target ref="id7"/>
 			<label kind="select" x="-367" y="-344">e : int [1,6]</label>
 			<label kind="guard" x="-367" y="-327">e &gt; currentFloor &amp;&amp; queueLength == 0</label>
-			<label kind="synchronisation" x="-367" y="-310">request_up2[e]?</label>
+			<label kind="synchronisation" x="-367" y="-310">request_up1[e]?</label>
 			<label kind="assignment" x="-367" y="-293">ascend_enqueue(e), 
 elevatorStateUpdate(), 
 targetFloor = front()</label>
@@ -472,8 +471,8 @@ targetFloor = front()</label>
 			<source ref="id5"/>
 			<target ref="id5"/>
 			<label kind="select" x="-460" y="149">e : int [1,6]</label>
-			<label kind="guard" x="-503" y="166">e &lt; currentFloor</label>
-			<label kind="synchronisation" x="-511" y="183">request_down2[e]?</label>
+			<label kind="guard" x="-503" y="166">e &lt; currentFloor &amp;&amp; currentFloor!=targetFloor</label>
+			<label kind="synchronisation" x="-511" y="183">request_down1[e]?</label>
 			<label kind="assignment" x="-528" y="200">descend_enqueue(e), 
 targetFloor = front()</label>
 			<nail x="-316" y="208"/>
@@ -484,8 +483,8 @@ targetFloor = front()</label>
 			<source ref="id6"/>
 			<target ref="id6"/>
 			<label kind="select" x="306" y="-306">e : int[1,6]</label>
-			<label kind="guard" x="306" y="-289">e &gt; currentFloor</label>
-			<label kind="synchronisation" x="306" y="-272">request_up2[e]?</label>
+			<label kind="guard" x="306" y="-289">e &gt; currentFloor &amp;&amp; currentFloor!=targetFloor</label>
+			<label kind="synchronisation" x="306" y="-272">request_up1[e]?</label>
 			<label kind="assignment" x="306" y="-255">ascend_enqueue(e), 
 targetFloor=front()</label>
 			<nail x="306" y="-204"/>
@@ -498,16 +497,14 @@ targetFloor=front()</label>
 			<label kind="assignment" x="-110" y="8">dequeue(), 
 targetFloor = front(),
 elevatorStateUpdate(), 
-elapsedTime = 0</label>
+elapsedTime2 = 0</label>
 		</transition>
 		<transition>
 			<source ref="id6"/>
 			<target ref="id4"/>
-			<label kind="select" x="314" y="0">e : int[1,6]</label>
 			<label kind="guard" x="314" y="17">currentFloor == targetFloor</label>
 			<label kind="synchronisation" x="314" y="34">ack[currentFloor]!</label>
-			<label kind="assignment" x="314" y="51">targetFloor = front(), 
-elapsedTime = 0</label>
+			<label kind="assignment" x="314" y="51">elapsedTime2 = 0</label>
 		</transition>
 		<transition>
 			<source ref="id5"/>
@@ -515,19 +512,19 @@ elapsedTime = 0</label>
 			<label kind="guard" x="-17" y="161">currentFloor == targetFloor</label>
 			<label kind="synchronisation" x="-17" y="178">ack[currentFloor]!</label>
 			<label kind="assignment" x="-17" y="195">targetFloor = front(),
-elapsedTime = 0</label>
+elapsedTime2 = 0</label>
 		</transition>
 		<transition>
 			<source ref="id7"/>
 			<target ref="id5"/>
-			<label kind="guard" x="-630" y="30">targetFloor &lt; currentFloor &amp;&amp; elevatorState == 2</label>
-			<label kind="assignment" x="-401" y="47">elapsedTime = 0</label>
+			<label kind="guard" x="-773" y="25">targetFloor &lt; currentFloor &amp;&amp; elevatorState == 2 &amp;&amp; queueLength &gt; 0</label>
+			<label kind="assignment" x="-401" y="47">elapsedTime2 = 0</label>
 		</transition>
 		<transition>
 			<source ref="id7"/>
 			<target ref="id6"/>
-			<label kind="guard" x="-127" y="-144">targetFloor &gt; currentFloor &amp;&amp; elevatorState == 1</label>
-			<label kind="assignment" x="-25" y="-119">elapsedTime = 0</label>
+			<label kind="guard" x="-127" y="-144">targetFloor &gt; currentFloor &amp;&amp; elevatorState == 1 &amp;&amp; queueLength &gt; 0</label>
+			<label kind="assignment" x="-25" y="-119">elapsedTime2 = 0</label>
 		</transition>
 	</template>
 	<template>
@@ -543,20 +540,6 @@ elapsedTime = 0</label>
 			<name x="-171" y="-72">Idle</name>
 		</location>
 		<init ref="id10"/>
-		<transition>
-			<source ref="id10"/>
-			<target ref="id8"/>
-			<label kind="synchronisation" x="-408" y="42">request_down2[floorNumber]!</label>
-			<nail x="-195" y="34"/>
-			<nail x="-416" y="34"/>
-		</transition>
-		<transition>
-			<source ref="id10"/>
-			<target ref="id9"/>
-			<label kind="synchronisation" x="-110" y="42">request_up2[floorNumber]!</label>
-			<nail x="-136" y="34"/>
-			<nail x="102" y="34"/>
-		</transition>
 		<transition>
 			<source ref="id9"/>
 			<target ref="id10"/>
@@ -590,11 +573,15 @@ system Elevator1, Elevator2, Floors;</system>
 			<comment></comment>
 		</query>
 		<query>
-			<formula>Floors(1).UpRequest --&gt; Floors(1).Idle</formula>
+			<formula>Floors(1).DownRequest --&gt; Floors(1).Idle</formula>
 			<comment></comment>
 		</query>
 		<query>
-			<formula></formula>
+			<formula>Floors(2).UpRequest --&gt; Floors(2).Idle</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>Elevator1.MovingUp --&gt; Elevator1.LoadingUnloading</formula>
 			<comment></comment>
 		</query>
 		<query>
